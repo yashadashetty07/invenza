@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -18,8 +19,12 @@ public class BillController {
     private BillService billService;
 
     @GetMapping
-    public ResponseEntity<List<Bill>> getAllBills() {
-        return ResponseEntity.ok(billService.getAllBills());
+    public ResponseEntity<List<BillDTO>> getAllBills() {
+        List<BillDTO> billDTOs = billService.getAllBills()
+                .stream()
+                .map(BillMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(billDTOs);
     }
 
     @GetMapping("/{id}")

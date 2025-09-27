@@ -1,8 +1,6 @@
 package com.invenza.DTO;
-import com.invenza.entities.Bill;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import com.invenza.entities.Bill;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +25,8 @@ public class BillMapper {
             itemDTO.setMrpPrice(item.getMrpPrice());
             itemDTO.setDiscountedPrice(item.getDiscountedPrice());
             itemDTO.setGstAmount(item.getGstAmount());
-            itemDTO.setFinalPrice(item.getFinalPrice());
+            itemDTO.setUnitFinalPrice(item.getUnitFinalPrice()); // unit price including GST
+            itemDTO.setTotalFinalPrice(item.getTotalFinalPrice());     // total price for this item = unitFinalPrice * quantity
             return itemDTO;
         }).collect(Collectors.toList());
 
@@ -35,4 +34,3 @@ public class BillMapper {
         return dto;
     }
 }
-

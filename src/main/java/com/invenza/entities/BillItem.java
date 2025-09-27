@@ -40,8 +40,13 @@ public class BillItem {
     @Column(nullable = false)
     private double gstAmount;// calculated
 
+
     @Column(nullable = false)
-    private double finalPrice; // discountedPrice + gstAmount
+    private double unitFinalPrice;    // per unit final price = discountedPrice + gstAmount
+
+    @Column(nullable = false)
+    private double totalFinalPrice;        // total for this item = unitFinalPrice * quantity
+
 
     @Column(nullable = false)
     private String hsnCode;

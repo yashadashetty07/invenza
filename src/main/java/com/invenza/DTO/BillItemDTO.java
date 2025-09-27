@@ -11,5 +11,7 @@ public class BillItemDTO {
     private double mrpPrice;
     private double discountedPrice;
     private double gstAmount;
-    private double finalPrice;
+    private double unitFinalPrice;   // unit final price
+    private double totalFinalPrice;   // total for this item
 }
+

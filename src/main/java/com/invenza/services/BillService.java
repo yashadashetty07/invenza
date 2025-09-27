@@ -6,7 +6,6 @@ import com.invenza.entities.Product;
 import com.invenza.repositories.BillItemsRepository;
 import com.invenza.repositories.BillRepository;
 import com.invenza.repositories.ProductRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,37 +32,47 @@ public class BillService {
         double finalAmount = 0;
 
         for (BillItem item : bill.getItems()) {
-            Product product = productRepository.findById(item.getProduct().getId()).orElseThrow(() -> new RuntimeException("Product not found"));
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            // Set product details
             item.setHsnCode(product.getHsnCode());
             item.setProductName(product.getName());
             item.setMrpPrice(product.getPrice());
 
-            //discount calculation
+            // Skip discount → take same as MRP
             if (item.getDiscountedPrice() <= 0) {
                 item.setDiscountedPrice(product.getPrice());
             }
 
-            //stock validation
+            // Stock validation
             if (product.getQuantity() < item.getQuantity()) {
                 throw new RuntimeException("Insufficient Stock of " + product.getName());
             }
 
+            // Deduct stock
             product.setQuantity(product.getQuantity() - item.getQuantity());
             productRepository.save(product);
 
-            double gstAmount = product.getGstPercentage() / 100 * item.getDiscountedPrice();
+            // GST and final price (per unit)
+            double gstPerUnit = product.getGstPercentage() / 100 * item.getDiscountedPrice();
+            double unitFinalPrice = item.getDiscountedPrice() + gstPerUnit;
 
-            double itemFinalPrice = item.getDiscountedPrice() + gstAmount;
-
+            // Totals
             totalMRP += item.getMrpPrice() * item.getQuantity();
             totalDiscounted += item.getDiscountedPrice() * item.getQuantity();
-            gstTotal += gstAmount * item.getQuantity();
-            finalAmount += itemFinalPrice * item.getQuantity();
-            item.setFinalPrice(itemFinalPrice);
-            item.setGstAmount(gstAmount);
-            item.setBill(bill);
+            gstTotal += gstPerUnit * item.getQuantity();
+            finalAmount += unitFinalPrice * item.getQuantity();
 
+            // Set item details
+            item.setUnitFinalPrice(unitFinalPrice);
+            item.setTotalFinalPrice(unitFinalPrice * item.getQuantity());
+            item.setGstAmount(gstPerUnit);
+            item.setBill(bill);
+            item.setUnitFinalPrice(unitFinalPrice);
         }
+
+        // Set bill totals
         bill.setTotalMRP(totalMRP);
         bill.setTotalDiscounted(totalDiscounted);
         bill.setGstTotal(gstTotal);
