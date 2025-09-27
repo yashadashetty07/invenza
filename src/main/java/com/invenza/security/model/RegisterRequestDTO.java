@@ -1,4 +1,4 @@
-package com.invenza;
+package com.invenza.security.model;
 
 import org.springframework.stereotype.Component;
 

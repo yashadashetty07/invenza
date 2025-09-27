@@ -25,9 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private CustomUserDetailsService customUserDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
         String username = null;
@@ -45,13 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Validate token
             if (jwtUtil.validateToken(token, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                System.out.println("Auth Header: " + authHeader);
+                System.out.println("Extracted Username: " + username);
+                System.out.println("User Authorities: " + userDetails.getAuthorities());
+                System.out.println("Token Valid: " + jwtUtil.validateToken(token, userDetails.getUsername()));
 
                 // Set authentication in context
                 SecurityContextHolder.getContext().setAuthentication(authToken);

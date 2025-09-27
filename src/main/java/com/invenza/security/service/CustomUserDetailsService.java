@@ -3,6 +3,7 @@ package com.invenza.security.service;
 import com.invenza.entities.Users;
 import com.invenza.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,10 +23,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Users user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        System.out.println("Loaded User Role: " + user.getRole().name());
         return new User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.singleton(() -> "ROLE_" + user.getRole().name())
-        );    }
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+        );
+    }
 
 }
