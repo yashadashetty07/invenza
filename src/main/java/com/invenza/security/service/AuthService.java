@@ -2,7 +2,7 @@ package com.invenza.security.service;
 
 import com.invenza.entities.Role;
 import com.invenza.entities.Users;
-import com.invenza.repositories.UserRepository;
+import com.invenza.repositories.UsersRepository;
 import com.invenza.security.jwt.JwtUtil;
 import com.invenza.security.model.AuthRequest;
 import com.invenza.security.model.AuthResponse;
@@ -14,8 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -30,7 +28,7 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserRepository userRepository;
+    private UsersRepository UsersRepository;
 
     /**
      * Login method that validates credentials and generates JWT token
@@ -45,13 +43,13 @@ public class AuthService {
         }
 
         // 2. Load the user from DB
-        Optional<Users> user = userRepository.findByUsername(authRequest.getUsername());
+        Users user = UsersRepository.findByUsername(authRequest.getUsername());
 
         // 3. Generate JWT token
-        String token = jwtUtil.generateToken(user.get().getUsername());
+        String token = jwtUtil.generateToken(user.getUsername());
 
         // 4. Return token + user details
-        return new AuthResponse(token, user.get().getUsername(), user.get().getRole().toString());
+        return new AuthResponse(token, user.getUsername(), user.getRole().toString());
     }
 
     /**
@@ -62,18 +60,21 @@ public class AuthService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(rawPassword)); // OR inject PasswordEncoder bean
         user.setRole(role);
-        userRepository.save(user);
+        UsersRepository.save(user);
     }
 
     public boolean changePassword(String username, String oldPassword, String newPassword) {
-        Users user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        Users user = UsersRepository.findByUsername(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             return false;
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        UsersRepository.save(user);
         return true;
     }
 }

@@ -1,11 +1,11 @@
 package com.invenza.repositories;
 
-import com.invenza.entities.Bill;
+import com.invenza.entities.PurchaseOrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-
 @Repository
-public interface BillRepository extends JpaRepository<Bill, Long> {
-    Bill findBillById(Long id);
+public interface PurchaseOrderItemRepository extends JpaRepository<PurchaseOrderItem, Long> {
+
+
 }

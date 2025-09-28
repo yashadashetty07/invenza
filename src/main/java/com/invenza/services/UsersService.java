@@ -1,20 +1,23 @@
 package com.invenza.services;
 
 import com.invenza.entities.Users;
-import com.invenza.repositories.UserRepository;
+import com.invenza.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UsersService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UsersRepository userRepository;
 
     public Users getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Users currentUser = userRepository.findByUsername(username);
+        if (currentUser == null) {
+            throw new UsernameNotFoundException(String.format("User %s not found", username));
+        }
+        return currentUser;
     }
-
 
 }
