@@ -1,4 +1,4 @@
-package com.invenza.DTO;
+package com.invenza.dto;
 
 import com.invenza.entities.Bill;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.invenza.DTO;
+package com.invenza.dto;
 import lombok.Data;
 
 import java.sql.Date;
