@@ -1,7 +1,6 @@
-package com.invenza.DTO;
+package com.invenza.dto;
 
 import lombok.Data;
-import org.antlr.v4.runtime.misc.NotNull;
 
 @Data
 public class PurchaseOrderItemRequestDTO {

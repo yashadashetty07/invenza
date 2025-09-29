@@ -1,8 +1,8 @@
 package com.invenza.services;
 
-import com.invenza.DTO.PurchaseOrderItemRequestDTO;
-import com.invenza.DTO.PurchaseOrderRequestDTO;
-import com.invenza.DTO.PurchaseOrderResponseDTO;
+import com.invenza.dto.PurchaseOrderItemRequestDTO;
+import com.invenza.dto.PurchaseOrderRequestDTO;
+import com.invenza.dto.PurchaseOrderResponseDTO;
 import com.invenza.entities.*;
 import com.invenza.repositories.ProductRepository;
 import com.invenza.repositories.PurchaseOrderRepository;

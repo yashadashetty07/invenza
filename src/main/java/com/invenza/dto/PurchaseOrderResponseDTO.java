@@ -1,7 +1,6 @@
-package com.invenza.DTO;
+package com.invenza.dto;
 
 import com.invenza.entities.PurchaseOrder;
-import com.invenza.entities.PurchaseOrderItem;
 import com.invenza.entities.PurchaseOrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;

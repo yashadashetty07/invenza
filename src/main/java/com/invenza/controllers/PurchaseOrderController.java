@@ -1,7 +1,7 @@
 package com.invenza.controllers;
 
-import com.invenza.DTO.PurchaseOrderRequestDTO;
-import com.invenza.DTO.PurchaseOrderResponseDTO;
+import com.invenza.dto.PurchaseOrderRequestDTO;
+import com.invenza.dto.PurchaseOrderResponseDTO;
 import com.invenza.entities.PurchaseOrderStatus;
 import com.invenza.services.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;

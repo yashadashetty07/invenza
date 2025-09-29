@@ -1,7 +1,7 @@
 package com.invenza.controllers;
 
-import com.invenza.DTO.BillDTO;
-import com.invenza.DTO.BillMapper;
+import com.invenza.dto.BillDTO;
+import com.invenza.dto.BillMapper;
 import com.invenza.entities.Bill;
 import com.invenza.services.BillService;
 import org.springframework.beans.factory.annotation.Autowired;
