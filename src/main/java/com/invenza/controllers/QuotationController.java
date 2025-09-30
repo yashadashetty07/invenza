@@ -26,20 +26,19 @@ public class QuotationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<QuotationDTO>> getQuotationById() {
+    public ResponseEntity<List<QuotationDTO>> getAllQuotations() {
         return ResponseEntity.ok(quotationService.getAllQuotations());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<QuotationDTO> updateQuotation(@PathVariable Long id, @RequestBody QuotationDTO dto) {
-        return ResponseEntity.ok(quotationService.updateQuotation(id, dto)); // 200 OK
+        return ResponseEntity.ok(quotationService.updateQuotation(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuotation(@PathVariable Long id) {
         quotationService.deleteQuotation(id);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
-
-
 }
+

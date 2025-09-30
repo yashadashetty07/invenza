@@ -27,6 +27,16 @@ public class ProductController {
         return ResponseEntity.ok(newProduct);
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<Product>> importProducts(@RequestBody List<Product> products) {
+        System.out.println("📦 Received bulk product import request: " + products.size() + " items");
+
+        List<Product> savedProducts = productService.importProducts(products);
+        System.out.println("✅ Successfully saved products: " + savedProducts.size());
+
+        return ResponseEntity.ok(savedProducts);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) throws Exception {
         return ResponseEntity.ok(productService.getProductById(id));
@@ -38,8 +48,7 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}/stock")
-    public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestParam
-    double newQuantity) throws Exception {
+    public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestParam double newQuantity) throws Exception {
         return ResponseEntity.ok(productService.updateStock(id, newQuantity));
     }
 

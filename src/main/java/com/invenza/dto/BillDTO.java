@@ -13,5 +13,8 @@ public class BillDTO {
     private double totalDiscounted;
     private double gstTotal;
     private double finalAmount;
+    private String billNumber;
+    private String customerAddress;
+    private String customerGSTIN;
     private List<BillItemDTO> items;
 }

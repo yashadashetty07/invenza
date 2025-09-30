@@ -47,9 +47,18 @@ public class ProductService {
         existingProduct.setPrice(newProduct.getPrice());
         existingProduct.setUnit(newProduct.getUnit());
         existingProduct.setHsnCode(newProduct.getHsnCode());
-        existingProduct.setGstPercentage(newProduct.getGstPercentage());
+        existingProduct.setGstRate(newProduct.getGstRate());
 
         return productsRepository.save(existingProduct);
     }
+    public List<Product> importProducts(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            throw new IllegalArgumentException("❌ Product list cannot be null or empty");
+        }
+
+        products.forEach(p -> System.out.println("➡️ Importing product: " + p));
+        return productsRepository.saveAll(products);
+    }
+
 
 }

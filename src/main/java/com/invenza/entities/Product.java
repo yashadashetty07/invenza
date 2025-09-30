@@ -16,7 +16,7 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false)
     private String name;
@@ -31,7 +31,7 @@ public class Product {
     private double price;
 
     @Column(nullable = false)
-    private double gstPercentage;
+    private double gstRate=18.00;
 
     @Column(nullable = false)
     private double quantity;        //stock remaining

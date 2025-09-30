@@ -25,11 +25,21 @@ public class QuotationItem {
     private Product product;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private Double quantity;
 
+    // Selling price (frontend editable)
     @Column(nullable = false)
     private Double unitPrice;
 
+    // Discount amount (MRP - selling price)
+    @Column(nullable = false)
+    private Double discountAmount;
+
+    // GST % from product
+    @Column(nullable = false)
+    private Double gstRate;
+
+    // Total price including GST
     @Column(nullable = false)
     private Double totalPrice;
 }

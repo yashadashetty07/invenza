@@ -8,11 +8,11 @@ import java.util.List;
 @Data
 public class QuotationDTO {
     private Long id;
-    private Long vendorId;
-    private String vendorName;
+    private String customerName;
+    private String customerAddress;
+    private String customerGSTIN;
     private List<QuotationItemDTO> items;
     private Double totalAmount;
     private LocalDateTime createdAt;
-
-
+    private String quotationNumber;
 }

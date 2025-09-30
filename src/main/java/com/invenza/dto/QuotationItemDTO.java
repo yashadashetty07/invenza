@@ -6,9 +6,12 @@ import lombok.Data;
 public class QuotationItemDTO {
     private Long productId;
     private String productName;
-    private Integer quantity;
-    private Double unitPrice;
-    private Double totalPrice;
+    private String hsnCode;
+    private Double quantity;
 
-    // Getters and Setters
+    private Double mrpPrice;          // original product MRP
+    private Double discountedPrice;   // editable selling price
+    private Double totalPrice;        // discountedPrice * quantity + GST
+    private Double gstRate;           // from Product
+    private Double discount;          // computed %: (MRP - discountedPrice)/MRP*100
 }
