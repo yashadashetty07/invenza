@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -38,7 +40,7 @@ public class BillService {
         double finalAmount = 0;
 
         for (BillItem item : bill.getItems()) {
-            System.out.println("🔄 Processing BillItem: productId=" + (item.getProduct()!=null ? item.getProduct().getId() : "null")
+            System.out.println("🔄 Processing BillItem: productId=" + (item.getProduct() != null ? item.getProduct().getId() : "null")
                     + ", qty=" + item.getQuantity() + ", discountedPrice=" + item.getDiscountedPrice());
 
             Product inputProduct = item.getProduct();
@@ -59,18 +61,26 @@ public class BillService {
             productRepository.save(managedProduct);
             System.out.println("📦 Updated Product stock: " + managedProduct.getQuantity());
 
-            double gstPerUnit = managedProduct.getGstRate() / 100 * item.getDiscountedPrice();
-            double unitFinalPrice = item.getDiscountedPrice() + gstPerUnit;
+            // Repaired calculation using BigDecimal
+            BigDecimal discountedPrice = BigDecimal.valueOf(item.getDiscountedPrice());
+            BigDecimal gstRate = BigDecimal.valueOf(managedProduct.getGstRate()).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            BigDecimal gstPerUnit = discountedPrice.multiply(gstRate).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal unitFinalPrice = discountedPrice.add(gstPerUnit).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
 
-            item.setUnitFinalPrice(unitFinalPrice);
-            item.setTotalFinalPrice(unitFinalPrice * item.getQuantity());
-            item.setGstAmount(gstPerUnit);
+            item.setUnitFinalPrice(unitFinalPrice.doubleValue());
+            item.setTotalFinalPrice(unitFinalPrice.multiply(quantity).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            item.setGstAmount(gstPerUnit.doubleValue());
             item.setBill(bill);
+
+            // Optional: CGST/SGST split (if needed in DTO/entity)
+            // double cgst = gstPerUnit.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP).doubleValue();
+            // double sgst = cgst;
 
             totalMRP += item.getMrpPrice() * item.getQuantity();
             totalDiscounted += item.getDiscountedPrice() * item.getQuantity();
-            gstTotal += gstPerUnit * item.getQuantity();
-            finalAmount += unitFinalPrice * item.getQuantity();
+            gstTotal += gstPerUnit.multiply(quantity).setScale(2, RoundingMode.HALF_UP).doubleValue();
+            finalAmount += unitFinalPrice.multiply(quantity).setScale(2, RoundingMode.HALF_UP).doubleValue();
 
             System.out.println("🧾 Finalized BillItem: productId=" + item.getProduct().getId()
                     + ", totalFinalPrice=" + item.getTotalFinalPrice());
@@ -85,7 +95,6 @@ public class BillService {
         return billRepository.save(bill);
     }
 
-
     public List<Bill> getAllBills() {
         return billRepository.findAll();
     }
@@ -94,5 +103,4 @@ public class BillService {
         return billRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("❌ Bill not found with id: " + id));
     }
-
 }
