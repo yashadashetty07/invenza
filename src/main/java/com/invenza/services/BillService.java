@@ -1,6 +1,5 @@
 package com.invenza.services;
 
-import com.invenza.dto.BillItemDTO;
 import com.invenza.entities.Bill;
 import com.invenza.entities.BillItem;
 import com.invenza.entities.Product;
@@ -13,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -27,12 +29,15 @@ public class BillService {
     @Autowired
     private ProductRepository productRepository;
 
-    private BillItemDTO billItemDTO;
-
     @Transactional
     public Bill createBill(Bill bill) {
-        System.out.println("🚀 Starting Bill creation: billNumber=" + bill.getBillNumber()
-                + ", customer=" + bill.getCustomerName() + ", itemsCount=" + (bill.getItems() == null ? 0 : bill.getItems().size()));
+
+        // ✅ Auto-generate bill number if missing
+        if (bill.getBillNumber() == null || bill.getBillNumber().isBlank()) {
+            bill.setBillNumber(generateBillNumber());
+        }
+
+        System.out.println("🚀 Creating Bill: " + bill.getBillNumber());
 
         double totalMRP = 0;
         double totalDiscounted = 0;
@@ -40,30 +45,26 @@ public class BillService {
         double finalAmount = 0;
 
         for (BillItem item : bill.getItems()) {
-            System.out.println("🔄 Processing BillItem: productId=" + (item.getProduct() != null ? item.getProduct().getId() : "null")
-                    + ", qty=" + item.getQuantity() + ", discountedPrice=" + item.getDiscountedPrice());
-
             Product inputProduct = item.getProduct();
             if (inputProduct == null || inputProduct.getId() == null) {
-                throw new RuntimeException("❌ Product is missing or has no ID in BillItem");
+                throw new RuntimeException("❌ Product missing or invalid");
             }
 
             Product managedProduct = productRepository.findById(inputProduct.getId())
                     .orElseThrow(() -> new RuntimeException("❌ Product not found with ID: " + inputProduct.getId()));
 
-            System.out.println("✅ Loaded Product from DB: " + managedProduct);
-
             if (managedProduct.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException("❌ Insufficient Stock of " + managedProduct.getName());
+                throw new RuntimeException("❌ Insufficient Stock for " + managedProduct.getName());
             }
 
+            // Update stock
             managedProduct.setQuantity(managedProduct.getQuantity() - item.getQuantity());
             productRepository.save(managedProduct);
-            System.out.println("📦 Updated Product stock: " + managedProduct.getQuantity());
 
-            // Repaired calculation using BigDecimal
+            // Calculate GST, final price
             BigDecimal discountedPrice = BigDecimal.valueOf(item.getDiscountedPrice());
-            BigDecimal gstRate = BigDecimal.valueOf(managedProduct.getGstRate()).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            BigDecimal gstRate = BigDecimal.valueOf(managedProduct.getGstRate())
+                    .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
             BigDecimal gstPerUnit = discountedPrice.multiply(gstRate).setScale(2, RoundingMode.HALF_UP);
             BigDecimal unitFinalPrice = discountedPrice.add(gstPerUnit).setScale(2, RoundingMode.HALF_UP);
             BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
@@ -73,17 +74,10 @@ public class BillService {
             item.setGstAmount(gstPerUnit.doubleValue());
             item.setBill(bill);
 
-            // Optional: CGST/SGST split (if needed in DTO/entity)
-            // double cgst = gstPerUnit.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP).doubleValue();
-            // double sgst = cgst;
-
             totalMRP += item.getMrpPrice() * item.getQuantity();
             totalDiscounted += item.getDiscountedPrice() * item.getQuantity();
-            gstTotal += gstPerUnit.multiply(quantity).setScale(2, RoundingMode.HALF_UP).doubleValue();
-            finalAmount += unitFinalPrice.multiply(quantity).setScale(2, RoundingMode.HALF_UP).doubleValue();
-
-            System.out.println("🧾 Finalized BillItem: productId=" + item.getProduct().getId()
-                    + ", totalFinalPrice=" + item.getTotalFinalPrice());
+            gstTotal += gstPerUnit.multiply(quantity).doubleValue();
+            finalAmount += unitFinalPrice.multiply(quantity).doubleValue();
         }
 
         bill.setTotalMRP(totalMRP);
@@ -91,7 +85,6 @@ public class BillService {
         bill.setGstTotal(gstTotal);
         bill.setFinalAmount(finalAmount);
 
-        System.out.println("📥 Saving Bill: billNumber=" + bill.getBillNumber() + ", finalAmount=" + bill.getFinalAmount());
         return billRepository.save(bill);
     }
 
@@ -103,4 +96,59 @@ public class BillService {
         return billRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("❌ Bill not found with id: " + id));
     }
+
+    public String generateBillNumber() {
+        String datePart = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        long countToday = billRepository.count(); // total bills (you can refine by date if needed)
+        String sequence = new DecimalFormat("0000").format(countToday + 1);
+        return "BILL-" + datePart + "-" + sequence;
+    }
+
+    public void deleteBill(Long id) {
+        Bill existing = billRepository.findBillById(id);
+        billRepository.deleteById(existing.getId());
+    }
+    @Transactional
+    public Bill updateBill(Bill bill) {
+        // Reuse existing logic to recompute totals and update product quantities correctly
+        double totalMRP = 0;
+        double totalDiscounted = 0;
+        double gstTotal = 0;
+        double finalAmount = 0;
+
+        for (BillItem item : bill.getItems()) {
+            Product inputProduct = item.getProduct();
+            if (inputProduct == null || inputProduct.getId() == null) {
+                throw new RuntimeException("❌ Product missing or invalid");
+            }
+
+            Product managedProduct = productRepository.findById(inputProduct.getId())
+                    .orElseThrow(() -> new RuntimeException("❌ Product not found with ID: " + inputProduct.getId()));
+
+            BigDecimal discountedPrice = BigDecimal.valueOf(item.getDiscountedPrice());
+            BigDecimal gstRate = BigDecimal.valueOf(managedProduct.getGstRate())
+                    .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            BigDecimal gstPerUnit = discountedPrice.multiply(gstRate).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal unitFinalPrice = discountedPrice.add(gstPerUnit).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
+
+            item.setUnitFinalPrice(unitFinalPrice.doubleValue());
+            item.setTotalFinalPrice(unitFinalPrice.multiply(quantity).setScale(2, RoundingMode.HALF_UP).doubleValue());
+            item.setGstAmount(gstPerUnit.doubleValue());
+            item.setBill(bill);
+
+            totalMRP += item.getMrpPrice() * item.getQuantity();
+            totalDiscounted += item.getDiscountedPrice() * item.getQuantity();
+            gstTotal += gstPerUnit.multiply(quantity).doubleValue();
+            finalAmount += unitFinalPrice.multiply(quantity).doubleValue();
+        }
+
+        bill.setTotalMRP(totalMRP);
+        bill.setTotalDiscounted(totalDiscounted);
+        bill.setGstTotal(gstTotal);
+        bill.setFinalAmount(finalAmount);
+
+        return billRepository.save(bill);
+    }
+
 }

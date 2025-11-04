@@ -1,9 +1,6 @@
 package com.invenza.services;
 
-import com.invenza.dto.BillDTO;
-import com.invenza.dto.BillItemDTO;
-import com.invenza.dto.QuotationDTO;
-import com.invenza.dto.QuotationItemDTO;
+import com.invenza.dto.*;
 import com.invenza.entities.Product;
 import com.invenza.repositories.ProductRepository;
 import com.lowagie.text.*;
@@ -21,34 +18,42 @@ import java.util.Optional;
 public class PDFService {
 
     private final ProductRepository productRepository;
-    private BillDTO billDTO;
 
     public PDFService(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
 
-    // -------------------- Bill PDF --------------------
+    // -----------------------------------------------------
+    // 🧾 BILL PDF GENERATION
+    // -----------------------------------------------------
     public byte[] generateBillPDF(BillDTO bill) throws DocumentException, IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A4, 20, 30, 20, 40); // margins
+        Document document = new Document(PageSize.A4, 20, 30, 20, 40);
         PdfWriter writer = PdfWriter.getInstance(document, baos);
-        writer.setPageEvent(new PageBorderEvent()); // border + footer + page numbers
+        writer.setPageEvent(new PageBorderEvent());
         document.open();
 
         // ---- Fonts ----
+        Font titleFont = new Font(Font.HELVETICA, 25, Font.BOLD);
         Font headerFont = new Font(Font.HELVETICA, 16, Font.BOLD);
+        Font subFont = new Font(Font.HELVETICA, 10);
         Font tableFont = new Font(Font.HELVETICA, 9);
         Font boldTableFont = new Font(Font.HELVETICA, 9, Font.BOLD);
 
-        // ---- Seller Info ----
-        Paragraph sellerPara1 = new Paragraph("SANTOSH TRADERS", new Font(Font.HELVETICA, 25, Font.BOLD));
-        Paragraph sellerPara2 = new Paragraph("Main Road, Birdev Nagar, Rendal-416203\nPhone: 8087365990 | Email: omahajan723@gmail.com\nGSTIN: 27AALFC1094M1Z2", new Font(Font.HELVETICA, 10));
-        sellerPara1.setAlignment(Element.ALIGN_CENTER);
-        sellerPara2.setAlignment(Element.ALIGN_CENTER);
-        sellerPara1.setSpacingAfter(5);
-        sellerPara2.setSpacingAfter(8);
-        document.add(sellerPara1);
-        document.add(sellerPara2);
+        // ---- Header ----
+        Paragraph sellerName = new Paragraph("SANTOSH TRADERS", titleFont);
+        sellerName.setAlignment(Element.ALIGN_CENTER);
+        sellerName.setSpacingAfter(4);
+
+        Paragraph sellerDetails = new Paragraph(
+                "Main Road, Birdev Nagar, Rendal - 416203\n" +
+                        "Phone: 8087365990 | Email: omahajan723@gmail.com\n" +
+                        "GSTIN: 27AALFC1094M1Z2", subFont);
+        sellerDetails.setAlignment(Element.ALIGN_CENTER);
+        sellerDetails.setSpacingAfter(8);
+
+        document.add(sellerName);
+        document.add(sellerDetails);
 
         // ---- Invoice Info ----
         PdfPTable infoTable = new PdfPTable(4);
@@ -58,22 +63,34 @@ public class PDFService {
         infoTable.addCell(infoCell("Place of Supply:", "Maharashtra (27)"));
         infoTable.addCell(infoCell("Date of Invoice:", bill.getBillDate().toString()));
         infoTable.addCell(infoCell("", ""));
+        infoTable.setSpacingAfter(10);
         document.add(infoTable);
 
         // ---- Title ----
-        Paragraph header = new Paragraph("TAX INVOICE", headerFont);
-        header.setAlignment(Element.ALIGN_CENTER);
-        header.setSpacingBefore(10);
-        header.setSpacingAfter(10);
-        document.add(header);
+        Paragraph invoiceTitle = new Paragraph("TAX INVOICE", headerFont);
+        invoiceTitle.setAlignment(Element.ALIGN_CENTER);
+        invoiceTitle.setSpacingBefore(8);
+        invoiceTitle.setSpacingAfter(10);
+        document.add(invoiceTitle);
 
         // ---- Customer Info ----
+        String gstinText = (bill.getCustomerGSTIN() != null && !bill.getCustomerGSTIN().trim().isEmpty())
+                ? "\nGSTIN: " + bill.getCustomerGSTIN()
+                : "";
+
         PdfPTable partyTable = new PdfPTable(2);
         partyTable.setWidthPercentage(100);
-        PdfPCell billedTo = new PdfPCell(new Phrase("Billed To:\n" + bill.getCustomerName() + "\n" + bill.getCustomerAddress() + "\nGSTIN: " + bill.getCustomerGSTIN(), tableFont));
-        PdfPCell shippedTo = new PdfPCell(new Phrase("Shipped To:\n" + bill.getCustomerName() + "\n" + bill.getCustomerAddress() + "\nGSTIN: " + bill.getCustomerGSTIN(), tableFont));
+
+        PdfPCell billedTo = new PdfPCell(new Phrase(
+                "Billed To:\n" + bill.getCustomerName() + "\n" +
+                        bill.getCustomerAddress() + gstinText, tableFont));
         billedTo.setPadding(8);
+
+        PdfPCell shippedTo = new PdfPCell(new Phrase(
+                "Shipped To:\n" + bill.getCustomerName() + "\n" +
+                        bill.getCustomerAddress() + gstinText, tableFont));
         shippedTo.setPadding(8);
+
         partyTable.addCell(billedTo);
         partyTable.addCell(shippedTo);
         partyTable.setSpacingAfter(12);
@@ -82,21 +99,23 @@ public class PDFService {
         // ---- Items Table ----
         PdfPTable itemsTable = new PdfPTable(13);
         itemsTable.setWidthPercentage(100);
-        itemsTable.setWidths(new float[]{0.8f, 3f, 1.35f, 0.8f, 0.85f, // SN, Desc, HSN, Qty, Unit
-                1.2f, 1.3f, 1.5f,           // MRP, Selling, Discount
-                1.1f, 1.1f, 1.1f, 1.1f, 1.4f    // CGST%, CGST Amt, SGST%, SGST Amt, Total
+        itemsTable.setWidths(new float[]{
+                0.8f, 3f, 1.35f, 0.8f, 0.85f, // SN, Desc, HSN, Qty, Unit
+                1.2f, 1.3f, 1.5f,             // MRP, Selling, Discount
+                1.1f, 1.1f, 1.1f, 1.1f, 1.4f  // CGST%, CGST Amt, SGST%, SGST Amt, Total
         });
 
-        String[] headers = {"No.", "Description ", "HSN", "Qty", "Unit", "MRP Price", "Selling Price", "Discount", "CGST %", "CGST Amt", "SGST %", "SGST Amt", "Total"};
+        String[] headers = {
+                "No.", "Description", "HSN", "Qty", "Unit",
+                "MRP Price", "Selling Price", "Discount",
+                "CGST %", "CGST Amt", "SGST %", "SGST Amt", "Total"
+        };
         for (String h : headers) itemsTable.addCell(headerCell(h));
 
-        // Totals initialization
         double taxable = 0, cgstTotal = 0, sgstTotal = 0;
         int slNo = 1;
 
         for (BillItemDTO item : bill.getItems()) {
-            PdfPCell cell;
-
             double mrpPrice = item.getMrpPrice();
             double sellingPrice = item.getDiscountedPrice();
             double discount = mrpPrice - sellingPrice;
@@ -111,65 +130,19 @@ public class PDFService {
             cgstTotal += cgstAmt;
             sgstTotal += sgstAmt;
 
-            // S.N.
-            cell = new PdfPCell(new Phrase(String.valueOf(slNo++), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            itemsTable.addCell(cell);
-
-            // Description
-            itemsTable.addCell(new PdfPCell(new Phrase(item.getProductName(), tableFont)));
-
-            // HSN
-            itemsTable.addCell(new PdfPCell(new Phrase(item.getHsnCode(), tableFont)));
-
-            // Quantity
-            cell = new PdfPCell(new Phrase(String.valueOf(item.getQuantity()), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // Unit
-            String unit = item.getProduct() != null ? item.getProduct().getUnit() : "PCS";
-            itemsTable.addCell(new PdfPCell(new Phrase(unit, tableFont)));
-
-            // MRP Price
-            cell = new PdfPCell(new Phrase(String.format("%.2f", mrpPrice), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // Selling Price
-            cell = new PdfPCell(new Phrase(String.format("%.2f", sellingPrice), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // Discount
-            cell = new PdfPCell(new Phrase(String.format("%.2f", discount), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // CGST %
-            cell = new PdfPCell(new Phrase(String.format("%.2f", cgstRate), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // CGST Amt
-            cell = new PdfPCell(new Phrase(String.format("%.2f", cgstAmt), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // SGST %
-            cell = new PdfPCell(new Phrase(String.format("%.2f", sgstRate), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // SGST Amt
-            cell = new PdfPCell(new Phrase(String.format("%.2f", sgstAmt), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
-
-            // Total
-            cell = new PdfPCell(new Phrase(String.format("%.2f", total), tableFont));
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            itemsTable.addCell(cell);
+            itemsTable.addCell(cell(String.valueOf(slNo++)));
+            itemsTable.addCell(cell(item.getProductName()));
+            itemsTable.addCell(cell(item.getHsnCode()));
+            itemsTable.addCell(rightCell(item.getQuantity()));
+            itemsTable.addCell(cell(item.getProduct() != null ? item.getProduct().getUnit() : "PCS"));
+            itemsTable.addCell(rightCell(String.format("%.2f", mrpPrice)));
+            itemsTable.addCell(rightCell(String.format("%.2f", sellingPrice)));
+            itemsTable.addCell(rightCell(String.format("%.2f", discount)));
+            itemsTable.addCell(rightCell(String.format("%.2f", cgstRate)));
+            itemsTable.addCell(rightCell(String.format("%.2f", cgstAmt)));
+            itemsTable.addCell(rightCell(String.format("%.2f", sgstRate)));
+            itemsTable.addCell(rightCell(String.format("%.2f", sgstAmt)));
+            itemsTable.addCell(rightCell(String.format("%.2f", total)));
         }
 
         itemsTable.setSpacingAfter(10);
@@ -181,13 +154,13 @@ public class PDFService {
         totalsTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
 
         totalsTable.addCell(totalCell("Taxable Amount:"));
-        totalsTable.addCell(totalCell("₹" + String.format("%.2f", taxable)));
+        totalsTable.addCell(totalValue("₹" + String.format("%.2f", taxable)));
         totalsTable.addCell(totalCell("CGST Total:"));
-        totalsTable.addCell(totalCell("₹" + String.format("%.2f", cgstTotal)));
+        totalsTable.addCell(totalValue("₹" + String.format("%.2f", cgstTotal)));
         totalsTable.addCell(totalCell("SGST Total:"));
-        totalsTable.addCell(totalCell("₹" + String.format("%.2f", sgstTotal)));
+        totalsTable.addCell(totalValue("₹" + String.format("%.2f", sgstTotal)));
         totalsTable.addCell(totalCell("Grand Total:"));
-        totalsTable.addCell(totalCell("₹" + String.format("%.2f", bill.getFinalAmount())));
+        totalsTable.addCell(totalValue("₹" + String.format("%.2f", bill.getFinalAmount())));
 
         document.add(totalsTable);
 
@@ -195,7 +168,9 @@ public class PDFService {
         return baos.toByteArray();
     }
 
-    // -------------------- Quotation PDF --------------------
+    // -----------------------------------------------------
+    // 🧾 QUOTATION PDF GENERATION
+    // -----------------------------------------------------
     public byte[] generateQuotationPDF(QuotationDTO quotation) throws DocumentException, IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4, 20, 20, 20, 20);
@@ -205,7 +180,11 @@ public class PDFService {
 
         // Seller Info
         Paragraph sellerPara1 = new Paragraph("SANTOSH TRADERS", new Font(Font.HELVETICA, 25, Font.BOLD));
-        Paragraph sellerPara2 = new Paragraph("Main Road, Birdev Nagar, Rendal-416203\nPhone: 8087365990 | Email: omahajan723@gmail.com\nGSTIN: 27AALFC1094M1Z2", new Font(Font.HELVETICA, 10, Font.BOLD));
+        Paragraph sellerPara2 = new Paragraph(
+                "Main Road, Birdev Nagar, Rendal - 416203\n" +
+                        "Phone: 8087365990 | Email: omahajan723@gmail.com\n" +
+                        "GSTIN: 27AALFC1094M1Z2",
+                new Font(Font.HELVETICA, 10, Font.BOLD));
         sellerPara1.setAlignment(Element.ALIGN_CENTER);
         sellerPara2.setAlignment(Element.ALIGN_CENTER);
         sellerPara1.setSpacingAfter(10);
@@ -213,17 +192,23 @@ public class PDFService {
         document.add(sellerPara1);
         document.add(sellerPara2);
 
-        // Title
         Paragraph header = new Paragraph("QUOTATION", new Font(Font.HELVETICA, 14, Font.BOLD));
         header.setAlignment(Element.ALIGN_CENTER);
         header.setSpacingAfter(12);
         document.add(header);
 
-        // Customer Info
+        String gstinText = (quotation.getCustomerGSTIN() != null && !quotation.getCustomerGSTIN().trim().isEmpty())
+                ? "\nGSTIN: " + quotation.getCustomerGSTIN()
+                : "";
+
         PdfPTable partyTable = new PdfPTable(2);
         partyTable.setWidthPercentage(100);
-        PdfPCell billedTo = new PdfPCell(new Phrase("Billed To:\n" + quotation.getCustomerName() + "\n" + quotation.getCustomerAddress() + "\nGSTIN: " + quotation.getCustomerGSTIN(), new Font(Font.HELVETICA, 9)));
-        PdfPCell shippedTo = new PdfPCell(new Phrase("Shipped To:\n" + quotation.getCustomerName() + "\n" + quotation.getCustomerAddress() + "\nGSTIN: " + quotation.getCustomerGSTIN(), new Font(Font.HELVETICA, 9)));
+        PdfPCell billedTo = new PdfPCell(new Phrase(
+                "Billed To:\n" + quotation.getCustomerName() + "\n" +
+                        quotation.getCustomerAddress() + gstinText, new Font(Font.HELVETICA, 9)));
+        PdfPCell shippedTo = new PdfPCell(new Phrase(
+                "Shipped To:\n" + quotation.getCustomerName() + "\n" +
+                        quotation.getCustomerAddress() + gstinText, new Font(Font.HELVETICA, 9)));
         billedTo.setPadding(8);
         shippedTo.setPadding(8);
         partyTable.addCell(billedTo);
@@ -231,16 +216,18 @@ public class PDFService {
         partyTable.setSpacingAfter(12);
         document.add(partyTable);
 
-        // Items Table
         PdfPTable table = new PdfPTable(10);
         table.setWidthPercentage(100);
         table.setWidths(new float[]{0.8f, 2.3f, 1.2f, 0.8f, 0.7f, 1f, 1.2f, 1.2f, 1.2f, 1.6f});
+
         String[] headers = {"S.N.", "Description", "HSN", "Qty", "Unit", "MRP", "Sell Price", "Discount", "GST %", "Total"};
         for (String h : headers) table.addCell(headerCell(h));
 
         int sn = 1;
         for (QuotationItemDTO item : quotation.getItems()) {
-            Optional<Product> productOpt = item.getProductId() != null ? productRepository.findById(item.getProductId()) : Optional.empty();
+            Optional<Product> productOpt = item.getProductId() != null
+                    ? productRepository.findById(item.getProductId())
+                    : Optional.empty();
             String unit = productOpt.map(Product::getUnit).orElse("PCS");
             String hsn = productOpt.map(Product::getHsnCode).orElse("-");
             double mrp = productOpt.map(Product::getPrice).orElse(item.getMrpPrice());
@@ -263,26 +250,37 @@ public class PDFService {
         table.setSpacingAfter(10);
         document.add(table);
 
-        // ---- Total Amount Section ----
+        // Total Section
         PdfPTable totalTable = new PdfPTable(1);
-        totalTable.setWidthPercentage(30); // Only 30% of page width
-        totalTable.setHorizontalAlignment(Element.ALIGN_RIGHT); // Align right
+        totalTable.setWidthPercentage(30);
+        totalTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
 
-        PdfPCell amountCell = new PdfPCell(new Phrase("Total Amount: " + String.format("%.2f", quotation.getTotalAmount()), new Font(Font.HELVETICA, 10, Font.BOLD)));
+        PdfPCell amountCell = new PdfPCell(new Phrase(
+                "Total Amount: ₹" + String.format("%.2f", quotation.getTotalAmount()),
+                new Font(Font.HELVETICA, 10, Font.BOLD)));
         amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         amountCell.setPadding(6);
         totalTable.addCell(amountCell);
 
         document.add(totalTable);
-
         document.close();
         return baos.toByteArray();
     }
 
-    // -------------------- Helper Cells --------------------
+    // -----------------------------------------------------
+    // 🧩 Helper Cells
+    // -----------------------------------------------------
     private PdfPCell cell(Object value) {
         PdfPCell cell = new PdfPCell(new Phrase(String.valueOf(value), new Font(Font.HELVETICA, 9)));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(4);
+        return cell;
+    }
+
+    private PdfPCell rightCell(Object value) {
+        PdfPCell cell = new PdfPCell(new Phrase(String.valueOf(value), new Font(Font.HELVETICA, 9)));
+        cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         cell.setPadding(4);
         return cell;
@@ -293,7 +291,7 @@ public class PDFService {
         hCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         hCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         hCell.setPadding(5);
-        hCell.setBackgroundColor(new Color(230, 230, 230));
+        hCell.setBackgroundColor(new Color(240, 240, 240));
         return hCell;
     }
 
@@ -312,7 +310,17 @@ public class PDFService {
         return cell;
     }
 
-    // -------------------- Page Border + Footer --------------------
+    private PdfPCell totalValue(String value) {
+        PdfPCell cell = new PdfPCell(new Phrase(value, new Font(Font.HELVETICA, 8, Font.BOLD)));
+        cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cell.setPadding(5);
+        cell.setBorder(Rectangle.NO_BORDER);
+        return cell;
+    }
+
+    // -----------------------------------------------------
+    // 🧾 Page Border + Footer
+    // -----------------------------------------------------
     private static class PageBorderEvent extends PdfPageEventHelper {
         Font footerFont = new Font(Font.HELVETICA, 8);
 
@@ -322,16 +330,24 @@ public class PDFService {
             cb.setLineWidth(0.5f);
 
             // Border
-            cb.rectangle(document.left() - 10, document.bottom() - 10, document.getPageSize().getWidth() - 18, document.getPageSize().getHeight() - 30);
+            cb.rectangle(document.left() - 10, document.bottom() - 10,
+                    document.getPageSize().getWidth() - 18,
+                    document.getPageSize().getHeight() - 30);
             cb.stroke();
 
-            // Footer Text (always at bottom of page)
-            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT, new Phrase("Terms & Conditions: Goods once sold will not be taken back. Subject to Ichalkaranji Jurisdiction only.", footerFont), document.left(), document.bottom() + 25, 0);
+            // Footer Text
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
+                    new Phrase("Terms & Conditions: Goods once sold will not be taken back. Subject to Ichalkaranji Jurisdiction only.", footerFont),
+                    document.left(), document.bottom() + 25, 0);
 
-            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT, new Phrase("Declaration: This document shows actual price & all particulars are true.", footerFont), document.left(), document.bottom() + 15, 0);
+            ColumnText.showTextAligned(cb, Element.ALIGN_LEFT,
+                    new Phrase("Declaration: This document shows actual price & all particulars are true.", footerFont),
+                    document.left(), document.bottom() + 15, 0);
 
-            // Page Number (centered)
-            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, new Phrase("" + writer.getPageNumber(), footerFont), (document.right() + document.left()) / 2, document.bottom() - 5, 0);
+            // Page Number
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                    new Phrase("" + writer.getPageNumber(), footerFont),
+                    (document.right() + document.left()) / 2, document.bottom() - 5, 0);
         }
     }
 }

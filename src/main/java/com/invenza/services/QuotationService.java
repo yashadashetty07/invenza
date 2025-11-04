@@ -5,6 +5,7 @@ import com.invenza.dto.QuotationDTO;
 import com.invenza.dto.QuotationItemDTO;
 import com.invenza.entities.Product;
 import com.invenza.entities.Quotation;
+import com.invenza.entities.QuotationItem;
 import com.invenza.mapper.QuotationMapper;
 import com.invenza.repositories.ProductRepository;
 import com.invenza.repositories.QuotationRepository;
@@ -12,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,51 +43,81 @@ public class QuotationService {
     }
 
     public QuotationDTO createQuotation(QuotationDTO dto) {
-        // 1️⃣ Fetch products
-        List<Long> productIDs = dto.getItems().stream()
-                .map(QuotationItemDTO::getProductId)
-                .collect(Collectors.toList());
+        if (dto == null) {
+            throw new IllegalArgumentException("QuotationDTO is null");
+        }
+
+        // 1️⃣ Fetch products safely
+        List<Long> productIDs = dto.getItems() != null
+                ? dto.getItems().stream().map(QuotationItemDTO::getProductId).collect(Collectors.toList())
+                : List.of();
+
+        if (productIDs.isEmpty()) {
+            throw new IllegalArgumentException("Quotation must have at least one product");
+        }
 
         List<Product> products = productRepository.findAllById(productIDs);
+        if (products.isEmpty()) {
+            throw new RuntimeException("No valid products found for given IDs");
+        }
 
         // 2️⃣ Generate quotation number
         String quotationNumber = generateQuotationNumber();
 
-        // 3️⃣ Map DTO to entity
+        // 3️⃣ Map DTO → Entity
         Quotation quotation = QuotationMapper.toEntity(dto, products);
-        quotation.setQuotationNumber(quotationNumber);
 
-        // 4️⃣ Calculate total amount
-        double totalAmount = dto.getItems().stream()
-                .mapToDouble(QuotationItemDTO::getTotalPrice)
+        // Ensure number and createdAt set AFTER mapping
+        quotation.setQuotationNumber(quotationNumber);
+        quotation.setCreatedAt(LocalDateTime.now());
+
+        // 4️⃣ Compute total amount from items
+        double totalAmount = quotation.getItems().stream()
+                .mapToDouble(QuotationItem::getTotalPrice)
                 .sum();
         quotation.setTotalAmount(totalAmount);
 
-        // 5️⃣ Save and return
+        // 5️⃣ Persist and return
         Quotation savedQuotation = quotationRepository.save(quotation);
         return QuotationMapper.toDTO(savedQuotation);
     }
 
     public QuotationDTO updateQuotation(Long id, QuotationDTO dto) {
+        // 🔹 1. Fetch existing quotation safely
         Quotation existingQuotation = quotationRepository.findQuotationById(id);
-        if (existingQuotation == null) throw new RuntimeException("Quotation Not found");
+        if (existingQuotation == null) {
+            throw new RuntimeException("Quotation not found with id: " + id);
+        }
 
+        // 🔹 2. Fetch related products
         List<Long> productIds = dto.getItems().stream()
                 .map(QuotationItemDTO::getProductId)
                 .collect(Collectors.toList());
-
         List<Product> products = productRepository.findAllById(productIds);
 
+        // 🔹 3. Map DTO → new entity
         Quotation updatedQuotation = QuotationMapper.toEntity(dto, products);
-        updatedQuotation.setId(existingQuotation.getId());
 
+        // 🔹 4. Preserve immutable fields
+        updatedQuotation.setId(existingQuotation.getId());
+        updatedQuotation.setQuotationNumber(existingQuotation.getQuotationNumber());
+        updatedQuotation.setCreatedAt(existingQuotation.getCreatedAt());
+
+        // 🔹 5. Set updated timestamp
+        updatedQuotation.setUpdatedAt(LocalDateTime.now());
+
+        // 🔹 6. Recalculate total
         double totalAmount = updatedQuotation.getItems().stream()
-                .mapToDouble(item -> item.getTotalPrice())
+                .mapToDouble(QuotationItem::getTotalPrice)
                 .sum();
         updatedQuotation.setTotalAmount(totalAmount);
 
-        return QuotationMapper.toDTO(updatedQuotation);
+        // 🔹 7. Save
+        Quotation savedQuotation = quotationRepository.save(updatedQuotation);
+
+        return QuotationMapper.toDTO(savedQuotation);
     }
+
 
     public void deleteQuotation(Long id) {
         Quotation quotation = quotationRepository.findQuotationById(id);
@@ -91,9 +125,10 @@ public class QuotationService {
         quotationRepository.delete(quotation);
     }
 
-    private String generateQuotationNumber() {
-        long count = quotationRepository.count() + 1;
-        String year = String.valueOf(LocalDateTime.now().getYear());
-        return String.format("QUO-%s-%04d", year, count);
-    }
+    public String generateQuotationNumber() {
+            String datePart = new SimpleDateFormat("yyyyMMdd").format(new Date());
+            long countToday = quotationRepository.count(); // total bills (you can refine by date if needed)
+            String sequence = new DecimalFormat("0000").format(countToday + 1);
+            return "QTN-" + datePart + "-" + sequence;
+        }
 }

@@ -1,9 +1,9 @@
 package com.invenza.controllers;
 
-import com.invenza.dto.PurchaseOrderRequestDTO;
-import com.invenza.dto.PurchaseOrderResponseDTO;
+import com.invenza.dto.PurchaseOrderDTO;
 import com.invenza.entities.PurchaseOrderStatus;
 import com.invenza.services.PurchaseOrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,30 +18,30 @@ public class PurchaseOrderController {
     private PurchaseOrderService purchaseOrderService;
 
     @PostMapping
-    public ResponseEntity<PurchaseOrderResponseDTO> createOrder(@RequestBody PurchaseOrderRequestDTO request) throws Exception {
+    public ResponseEntity<PurchaseOrderDTO> createOrder(@RequestBody @Valid PurchaseOrderDTO request) throws Exception {
         return ResponseEntity.ok(purchaseOrderService.createOrder(request));
     }
 
     @GetMapping
-    public ResponseEntity<List<PurchaseOrderResponseDTO>> getAllOrders() {
+    public ResponseEntity<List<PurchaseOrderDTO>> getAllOrders() {
         return ResponseEntity.ok(purchaseOrderService.getAllOrders());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PurchaseOrderResponseDTO> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<PurchaseOrderDTO> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(purchaseOrderService.getOrderById(id));
     }
 
     @GetMapping("/vendor/{vendorId}")
-    public ResponseEntity<List<PurchaseOrderResponseDTO>> getOrdersByVendor(@PathVariable Long vendorId) {
+    public ResponseEntity<List<PurchaseOrderDTO>> getOrdersByVendor(@PathVariable Long vendorId) {
         return ResponseEntity.ok(purchaseOrderService.getOrdersByVendor(vendorId));
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<PurchaseOrderResponseDTO> updateStatus(
+    @PutMapping("/{id}")
+    public ResponseEntity<PurchaseOrderDTO> updateOrder(
             @PathVariable Long id,
-            @RequestParam PurchaseOrderStatus status) {
-        return ResponseEntity.ok(purchaseOrderService.updateOrderStatus(id, status));
+            @Valid @RequestBody PurchaseOrderDTO orderDTO) {
+        return ResponseEntity.ok(purchaseOrderService.updateOrder(id, orderDTO));
     }
 
     @DeleteMapping("/{id}")

@@ -36,10 +36,6 @@ public class Product {
     @Column(nullable = false)
     private double quantity;        //stock remaining
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DiscountType discountType = DiscountType.NONE;
-
     @Column(nullable = false)
     private double discountValue = 0.0;  // percentage
 }

@@ -26,13 +26,22 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // ✅ Enable CORS
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // ✅ Disable CSRF for APIs
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                // ✅ Authorization rules
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/forgot-password").permitAll().requestMatchers("/api/pdf/**").permitAll().requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CASHIER").anyRequest().authenticated()).formLogin(AbstractHttpConfigurer::disable).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/forgot",
+                                "/api/auth/verify",
+                                "/api/auth/reset"
+                        ).permitAll()
+                        .requestMatchers("/api/pdf/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/cashier/**").hasRole("CASHIER")
+                        .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CASHIER")
+                        .anyRequest().authenticated()
+                ).formLogin(AbstractHttpConfigurer::disable)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -47,22 +56,19 @@ public class SecurityConfiguration {
         return authConfig.getAuthenticationManager();
     }
 
-    // ✅ Define CORS Configuration here
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allowed frontend URLs
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"                       // local React
-                //  "https://your-netlify-app.netlify.app"         // production React
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000"
+                // ,"https://your-netlify-app.netlify.app" // Uncomment when deploying
         ));
 
-        // Allow all needed methods
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
-        // Apply to all endpoints
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

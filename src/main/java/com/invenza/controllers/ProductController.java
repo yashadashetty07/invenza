@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/products")
@@ -25,6 +26,11 @@ public class ProductController {
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         Product newProduct = productService.createProduct(product);
         return ResponseEntity.ok(newProduct);
+    }
+
+    @GetMapping("/hsns")
+    public ResponseEntity<Set<String>> getAllHsns() {
+        return ResponseEntity.ok(productService.getAllHsns());
     }
 
     @PostMapping("/bulk")

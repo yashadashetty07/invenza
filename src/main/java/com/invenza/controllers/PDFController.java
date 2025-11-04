@@ -48,7 +48,7 @@ public class PDFController {
                 .body(pdf);
     }
 
-    @GetMapping("/quotation/{id}")
+    @GetMapping("/quotations/{id}")
     public ResponseEntity<byte[]> generateQuotation(@PathVariable Long id) throws Exception {
         QuotationDTO quotation = quotationService.getQuotationById(id);
         byte[] pdf = pdfService.generateQuotationPDF(quotation);

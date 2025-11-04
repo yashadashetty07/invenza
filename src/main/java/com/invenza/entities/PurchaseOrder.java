@@ -1,5 +1,6 @@
 package com.invenza.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ public class PurchaseOrder {
     private Long id;
 
     // Vendor supplying materials
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
@@ -45,7 +47,7 @@ public class PurchaseOrder {
     private LocalDateTime createdAt;
 
     @Column
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt=createdAt;
 
     // Set default values before insert
     @PrePersist

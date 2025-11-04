@@ -52,6 +52,36 @@ public class BillController {
         return ResponseEntity.ok(dto);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBill(@PathVariable Long id){
+        billService.deleteBill(id);
+    return ResponseEntity.ok("ok");
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BillDTO> updateBill(@PathVariable Long id, @RequestBody BillDTO billDTO) {
+        Bill existingBill = billService.getBillById(id);
+        if (existingBill == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Update simple fields
+        existingBill.setCustomerName(billDTO.getCustomerName());
+        existingBill.setBillDate(billDTO.getBillDate());
+        existingBill.setCustomerAddress(billDTO.getCustomerAddress());
+        existingBill.setCustomerGSTIN(billDTO.getCustomerGSTIN());
+
+        // Replace existing items with updated ones
+        Bill updatedData = BillMapper.fromDTO(billDTO, productRepository);
+        existingBill.getItems().clear();
+        existingBill.getItems().addAll(updatedData.getItems());
+
+        // Recalculate and save (reuse your createBill logic)
+        Bill updatedBill = billService.updateBill(existingBill);
+        return ResponseEntity.ok(BillMapper.toDTO(updatedBill));
+    }
+
+
 }
 
 

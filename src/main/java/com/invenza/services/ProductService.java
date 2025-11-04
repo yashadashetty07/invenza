@@ -6,12 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 public class ProductService {
 
     @Autowired
     private ProductRepository productsRepository;
+
+    public Set<String> getAllHsns() {
+        return new HashSet<>(productsRepository.findAllHsns());
+    }
+
 
     public Product createProduct(Product product) {
         if (productsRepository.existsByHsnCode(product.getHsnCode())) {
@@ -56,9 +63,16 @@ public class ProductService {
             throw new IllegalArgumentException("❌ Product list cannot be null or empty");
         }
 
-        products.forEach(p -> System.out.println("➡️ Importing product: " + p));
-        return productsRepository.saveAll(products);
+        Set<String> existingHsns = getAllHsns();
+
+        List<Product> newProducts = products.stream()
+                .filter(p -> !existingHsns.contains(p.getHsnCode()))
+                .toList();
+
+        newProducts.forEach(p -> System.out.println("➡️ Importing product: " + p));
+        return productsRepository.saveAll(newProducts);
     }
+
 
 
 }

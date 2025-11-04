@@ -1,4 +1,4 @@
-package com.invenza;
+package  com.invenza;
 
 import com.invenza.security.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;

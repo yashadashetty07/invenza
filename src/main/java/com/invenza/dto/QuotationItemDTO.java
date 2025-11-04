@@ -8,7 +8,6 @@ public class QuotationItemDTO {
     private String productName;
     private String hsnCode;
     private Double quantity;
-
     private Double mrpPrice;          // original product MRP
     private Double discountedPrice;   // editable selling price
     private Double totalPrice;        // discountedPrice * quantity + GST

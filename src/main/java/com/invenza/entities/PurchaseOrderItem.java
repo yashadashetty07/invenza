@@ -1,6 +1,7 @@
 package com.invenza.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,27 +18,33 @@ public class PurchaseOrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Link to product being purchased
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    // Link back to purchase order
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "purchase_order_id")
+    @JoinColumn(name = "purchase_order_id", nullable = false)
     private PurchaseOrder purchaseOrder;
 
-
-    // Quantity of the product in this order
     @Column(nullable = false)
     private Double quantity;
 
-    // Price at which the product was purchased
     @Column(nullable = false)
-    private Double price;
+    private Double unitPrice;
 
-    // Subtotal = quantity * price
+    // Optional: remove this field if you prefer to calculate dynamically
     @Column(nullable = false)
     private Double subtotal;
+
+    @PrePersist
+    @PreUpdate
+    public void calculateSubtotal() {
+        if (quantity != null && unitPrice != null) {
+            this.subtotal = quantity * unitPrice;
+        } else {
+            this.subtotal = 0.0;
+        }
+    }
 }
