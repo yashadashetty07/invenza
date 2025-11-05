@@ -1,0 +1,26 @@
+[33m32c3c71[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/master[m[33m)[m HEAD@{0}: pull origin master --allow-unrelated-histories: Fast-forward
+[33m54ee92c[m[33m ([m[1;31mmain/main[m[33m)[m HEAD@{1}: commit (merge): merging new code files with old code
+[33m4613dd0[m HEAD@{2}: checkout: moving from main to main
+[33m4613dd0[m HEAD@{3}: checkout: moving from temp-fix to main
+[33m8da071f[m[33m ([m[1;31morigin/temp-fix[m[33m, [m[1;32mtemp-fix[m[33m)[m HEAD@{4}: commit (amend): Complete working app with frontend and backend
+[33m1320b0d[m HEAD@{5}: checkout: moving from 1320b0df165158e11e4bda2cef46e4f1f7acb3cd to temp-fix
+[33m1320b0d[m HEAD@{6}: commit: Complete working app woth frontend and backend
+[33m7853325[m HEAD@{7}: commit: code with DB deployed on RDS
+[33mc5f8149[m[33m ([m[1;31mmain/master[m[33m)[m HEAD@{8}: commit (amend): Code with pdfService working for bills only, not for quotations
+[33mb44cced[m HEAD@{9}: commit (amend): Code with pdfService working for bills only, not for quotations
+[33mf2b1c32[m HEAD@{10}: commit (amend): Code with pdfService working for bills only, not for quotations
+[33m4ad992f[m HEAD@{11}: commit (amend): Code with pdfService working for bills only, not for quotations
+[33mb37c406[m HEAD@{12}: commit (amend): Code with pdfService working for bills only, not for quotations
+[33m36f607e[m HEAD@{13}: commit (amend): Code with pdfService working for bills only, not for quotations
+[33m3eb8527[m[33m ([m[1;31mmain/detached[m[33m)[m HEAD@{14}: commit: Code with pdfService working for bills only, not for quotations
+[33m78e9724[m HEAD@{15}: commit (amend): Code with quotationService implemented successfully and working
+[33m6d63369[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{16}: reset: moving to 6d633690f6e5c3e816770bf69ad2f8e3cdce8645
+[33m70e8acd[m HEAD@{17}: revert: Revert "Code with quotationService implemented successfully and working"
+[33m6d63369[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{18}: checkout: moving from master to 6d63369
+[33m6d63369[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{19}: commit: Code with quotationService implemented successfully and working
+[33m3bd89e3[m HEAD@{20}: commit: Code with vendor and purchase-orders implemented successfully and working
+[33ma80c60a[m HEAD@{21}: commit: Code up to bills creation using postman
+[33m12f8881[m HEAD@{22}: commit: Code up to bills creation using postman
+[33m1677111[m HEAD@{23}: commit (amend): day 2 completed
+[33m8ce13b8[m HEAD@{24}: commit (amend): day 2 completed
+[33m4e5da24[m HEAD@{25}: commit (initial): day 2 completed
