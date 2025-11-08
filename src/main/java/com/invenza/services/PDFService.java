@@ -41,14 +41,14 @@ public class PDFService {
         Font boldTableFont = new Font(Font.HELVETICA, 9, Font.BOLD);
 
         // ---- Header ----
-        Paragraph sellerName = new Paragraph("SANTOSH TRADERS", titleFont);
+        Paragraph sellerName = new Paragraph("YASH TRADERS", titleFont);
         sellerName.setAlignment(Element.ALIGN_CENTER);
         sellerName.setSpacingAfter(4);
 
         Paragraph sellerDetails = new Paragraph(
-                "Main Road, Birdev Nagar, Rendal - 416203\n" +
-                        "Phone: 8087365990 | Email: omahajan723@gmail.com\n" +
-                        "GSTIN: 27AALFC1094M1Z2", subFont);
+                "Main Road, Ramnagar, Rendal - 416203\n" +
+                        "Phone: 7666285594 | Email: yashadashettygdsc@gmail.com\n" +
+                        "GSTIN: 27AOJPE7732Z2K1", subFont);
         sellerDetails.setAlignment(Element.ALIGN_CENTER);
         sellerDetails.setSpacingAfter(8);
 
@@ -179,11 +179,11 @@ public class PDFService {
         document.open();
 
         // Seller Info
-        Paragraph sellerPara1 = new Paragraph("SANTOSH TRADERS", new Font(Font.HELVETICA, 25, Font.BOLD));
-        Paragraph sellerPara2 = new Paragraph(
-                "Main Road, Birdev Nagar, Rendal - 416203\n" +
-                        "Phone: 8087365990 | Email: omahajan723@gmail.com\n" +
-                        "GSTIN: 27AALFC1094M1Z2",
+        Paragraph sellerPara2 = new Paragraph("YASH TRADERS", new Font(Font.HELVETICA, 25, Font.BOLD));
+         Paragraph sellerDetails = new Paragraph(
+                "Main Road, Ramnagar, Rendal - 416203\n" +
+                        "Phone: 7666285594 | Email: yashadashettygdsc@gmail.com\n" +
+                        "GSTIN: 27AOJPE7732Z2K1", subFont);
                 new Font(Font.HELVETICA, 10, Font.BOLD));
         sellerPara1.setAlignment(Element.ALIGN_CENTER);
         sellerPara2.setAlignment(Element.ALIGN_CENTER);
