@@ -100,9 +100,9 @@ public class PDFService {
         PdfPTable itemsTable = new PdfPTable(13);
         itemsTable.setWidthPercentage(100);
         itemsTable.setWidths(new float[]{
-                0.8f, 3f, 1.35f, 0.8f, 0.85f, // SN, Desc, HSN, Qty, Unit
-                1.2f, 1.3f, 1.5f,             // MRP, Selling, Discount
-                1.1f, 1.1f, 1.1f, 1.1f, 1.4f  // CGST%, CGST Amt, SGST%, SGST Amt, Total
+                0.8f, 3f, 1.35f, 0.8f, 0.85f,
+                1.2f, 1.3f, 1.5f,
+                1.1f, 1.1f, 1.1f, 1.1f, 1.4f
         });
 
         String[] headers = {
@@ -178,13 +178,17 @@ public class PDFService {
         writer.setPageEvent(new PageBorderEvent());
         document.open();
 
+        // Fonts
+        Font titleFont = new Font(Font.HELVETICA, 25, Font.BOLD);
+        Font subFont = new Font(Font.HELVETICA, 10);
+
         // Seller Info
-        Paragraph sellerPara2 = new Paragraph("YASH TRADERS", new Font(Font.HELVETICA, 25, Font.BOLD));
-         Paragraph sellerDetails = new Paragraph(
+        Paragraph sellerPara1 = new Paragraph("YASH TRADERS", titleFont);
+        Paragraph sellerPara2 = new Paragraph(
                 "Main Road, Ramnagar, Rendal - 416203\n" +
                         "Phone: 7666285594 | Email: yashadashettygdsc@gmail.com\n" +
                         "GSTIN: 27AOJPE7732Z2K1", subFont);
-                new Font(Font.HELVETICA, 10, Font.BOLD));
+
         sellerPara1.setAlignment(Element.ALIGN_CENTER);
         sellerPara2.setAlignment(Element.ALIGN_CENTER);
         sellerPara1.setSpacingAfter(10);
@@ -351,3 +355,4 @@ public class PDFService {
         }
     }
 }
+
