@@ -60,13 +60,15 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // Allow only your frontend and local dev
         configuration.setAllowedOrigins(List.of(
+                "https://invenza.netlify.app",
                 "http://localhost:3000"
-                // ,"https://your-netlify-app.netlify.app" // Uncomment when deploying
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

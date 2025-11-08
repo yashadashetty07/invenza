@@ -185,7 +185,9 @@ const PurchaseOrderForm = () => {
                             <select
                                 className="form-select"
                                 value={order.vendorId}
-                                onChange={(e) => setOrder((prev) => ({ ...prev, vendorId: e.target.value }))}
+                                onChange={(e) =>
+                                    setOrder((prev) => ({ ...prev, vendorId: e.target.value }))
+                                }
                                 required
                             >
                                 <option value="">Select Vendor</option>
@@ -223,14 +225,20 @@ const PurchaseOrderForm = () => {
                                                             ? {
                                                                 value: item.productId,
                                                                 label:
-                                                                    products.find((p) => p.id === parseInt(item.productId))?.name ||
-                                                                    "",
+                                                                    products.find(
+                                                                        (p) => p.id === parseInt(item.productId)
+                                                                    )?.name || "",
                                                             }
                                                             : null
                                                     }
                                                     onChange={(option) => handleProductSelect(index, option.value)}
                                                     placeholder="Select product..."
                                                     isSearchable
+                                                    menuPortalTarget={document.body}
+                                                    styles={{
+                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                                                    }}
                                                 />
                                             </td>
                                             <td>
@@ -239,7 +247,9 @@ const PurchaseOrderForm = () => {
                                                     className="form-control"
                                                     value={item.quantity}
                                                     min="1"
-                                                    onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleItemChange(index, "quantity", e.target.value)
+                                                    }
                                                     required
                                                 />
                                             </td>
@@ -250,7 +260,9 @@ const PurchaseOrderForm = () => {
                                                     value={item.price}
                                                     min="0"
                                                     step="0.01"
-                                                    onChange={(e) => handleItemChange(index, "price", e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleItemChange(index, "price", e.target.value)
+                                                    }
                                                     required
                                                 />
                                             </td>
@@ -283,7 +295,9 @@ const PurchaseOrderForm = () => {
                             <select
                                 className="form-select"
                                 value={order.status}
-                                onChange={(e) => setOrder((prev) => ({ ...prev, status: e.target.value }))}
+                                onChange={(e) =>
+                                    setOrder((prev) => ({ ...prev, status: e.target.value }))
+                                }
                             >
                                 <option value="PENDING">Pending</option>
                                 <option value="APPROVED">Approved</option>
@@ -314,6 +328,7 @@ const PurchaseOrderForm = () => {
                             </button>
                         </div>
                     </form>
+
                 </div>
             </div>
         </Layout>

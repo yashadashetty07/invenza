@@ -34,16 +34,13 @@ public class AuthService {
     private UsersRepository usersRepository;
 
     public LoginResponse login(LoginRequest loginRequest) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
-            );
-        } catch (Exception e) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
+
 
         Users user = usersRepository.findByUsername(loginRequest.getUsername());
         if (user == null) throw new UsernameNotFoundException("User not found");

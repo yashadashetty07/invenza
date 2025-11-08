@@ -144,7 +144,7 @@ const AdminDashboard = () => {
               </div>
               <div className="col-6 col-md-4 col-lg-3">
                 <button
-                  onClick={() => navigate("/bills/new")}
+                  onClick={() => navigate("/bills/add")}
                   className="btn btn-outline-success w-100 py-3 rounded-3 shadow-sm fw-medium action-btn"
                 >
                   <i className="bi bi-receipt me-2"></i> Create Bill

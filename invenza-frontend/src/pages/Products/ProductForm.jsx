@@ -33,8 +33,14 @@ const ProductForm = () => {
       const response = await ProductService.getProductById(id);
       setProduct(response.data);
     } catch (error) {
-      console.error("Error fetching product:", error);
-      toast.error("Failed to load product details.");
+      console.error("Error saving product:", error);
+
+      // Extract backend error message if available
+      const backendMessage =
+        error.response?.data?.message ||
+        "❌ Failed to save product.";
+
+      toast.error(backendMessage);
     } finally {
       setLoading(false);
     }
